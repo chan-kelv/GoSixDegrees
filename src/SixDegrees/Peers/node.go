@@ -18,7 +18,11 @@ func Init(isMaster bool, masterIp string) {
 	ipWithPort := formatIpWithPort(masterIp)
 	if isMaster {
 		fmt.Println("Node is master")
-		startServerListen(ipWithPort)
+		err := startServerListen(ipWithPort)
+		if err != nil {
+			fmt.Println("Server start error:", err)
+			panic(err)
+		}
 	} else {
 		fmt.Println("Node is slave")
 		conn, err := dialServer(ipWithPort)
@@ -32,11 +36,11 @@ func Init(isMaster bool, masterIp string) {
 }
 
 func startServerListen(ipAddr string) error {
-	ipFullAddr := ipAddr + ":" + connectPort
+	ipFullAddr := ipAddr
 	listen, err := net.Listen("tcp", ipFullAddr)
 	if err != nil {
 		fmt.Println("Server could not start listening on", ipFullAddr)
-		err = fmt.Errorf("Server start fail: %v", err.Error())
+		err = fmt.Errorf("%v", err.Error())
 		return err
 	}
 
