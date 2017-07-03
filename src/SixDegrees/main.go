@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	HTTP_SERVER_START_DELAY = time.Duration(0) //5s to allow rpc to connect first
+	HTTP_SERVER_START_DELAY = time.Duration(0) //stall to allow rpc to connect first
 	DEFAULT_PORT            = "4000"
 )
 
