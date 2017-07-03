@@ -1,5 +1,9 @@
 package node
 
+/**
+ * This package deals with node to node communication to do the crawling
+ */
+
 import (
 	"fmt"
 	"net"
@@ -15,9 +19,13 @@ var (
 
 func Init(isMaster bool, masterIp string) {
 	fmt.Println("Node initalizing...")
+
+	//make sure the ip has an assigned port
 	ipWithPort := formatIpWithPort(masterIp)
+
 	if isMaster {
 		fmt.Println("Node is master")
+		//listen for nodes tring to connect
 		err := startServerListen(ipWithPort)
 		if err != nil {
 			fmt.Println("Server start error:", err)
@@ -25,18 +33,24 @@ func Init(isMaster bool, masterIp string) {
 		}
 	} else {
 		fmt.Println("Node is slave")
+		//try to connect to master node
 		conn, err := dialServer(ipWithPort)
 		if err != nil {
 			fmt.Println("Could not connect to server:", err)
 		} else {
-			go rpcListener(conn)
+			//hold the connection open
+			go slaveServeConn(conn)
 		}
 	}
-	fmt.Println("Master ip is:", ipWithPort)
 }
 
-func startServerListen(ipAddr string) error {
-	ipFullAddr := ipAddr
+/**
+  * Uses the net package to listen for slave nodes trying to connect.
+	* Uses a tcp connection. When a node connects, save the connection.
+	* Registers NodeRpc to allow for rpc methods (TODO needed?)
+*/
+func startServerListen(ipFullAddr string) error {
+	//give the ip:port to listen on
 	listen, err := net.Listen("tcp", ipFullAddr)
 	if err != nil {
 		fmt.Println("Server could not start listening on", ipFullAddr)
@@ -44,16 +58,18 @@ func startServerListen(ipAddr string) error {
 		return err
 	}
 
+	//Register class for rpc
 	mServer := new(NodeRpc)
 	server := rpc.NewServer()
 	server.Register(mServer)
 
+	//Wait for a connection and handle nodes connecting
 	for {
 		conn, err := listen.Accept()
-
 		if err != nil {
 			fmt.Println("Worker could not connect:", err)
 		} else {
+			//Save the connection of the slave node
 			workerAddr := conn.RemoteAddr().String()
 			fmt.Println("Worker connected on:", workerAddr)
 			workerClients = append(workerClients, rpc.NewClient(conn))
@@ -61,7 +77,12 @@ func startServerListen(ipAddr string) error {
 	}
 }
 
+/**
+  * Slave node trying to connect to the master. If successful, will return
+	* the connection object. It connects via tcp given an ip:port
+*/
 func dialServer(masterIp string) (conn *net.TCPConn, err error) {
+	//Turn the string ip into tcp addr
 	addr, err := net.ResolveTCPAddr("tcp", masterIp)
 	if err != nil {
 		fmt.Println("Could not resolve ip", err)
@@ -69,6 +90,7 @@ func dialServer(masterIp string) (conn *net.TCPConn, err error) {
 		return
 	}
 
+	// Attempt to connect to the master node
 	conn, err = net.DialTCP("tcp", nil, addr)
 	if err != nil {
 		fmt.Println("Could not connect to master node", err)
@@ -79,7 +101,12 @@ func dialServer(masterIp string) (conn *net.TCPConn, err error) {
 	return conn, nil
 }
 
-func rpcListener(conn *net.TCPConn) {
+/**
+ * From the connection given, establishes a serveconn to listen for master
+ * node calling rpc methods to this slave node. This method blocks on ServeConn
+ */
+func slaveServeConn(conn *net.TCPConn) {
+	//Register NodeRpc to allow for rpc methods (TODO needed?)
 	server := rpc.NewServer()
 	rpcType := new(NodeRpc)
 	server.Register(rpcType)
@@ -88,6 +115,10 @@ func rpcListener(conn *net.TCPConn) {
 	fmt.Println("Connection to server broken")
 }
 
+/**
+  * Formats the given ip to make sure it has an attached port
+	* This only conforms with ipv4 addresses for now...
+*/
 func formatIpWithPort(ip string) string {
 	if strings.Contains(ip, ":") {
 		return ip
