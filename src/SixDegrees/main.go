@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	HTTP_SERVER_START_DELAY = time.Duration(5) //5s to allow rpc to connect first
+	HTTP_SERVER_START_DELAY = time.Duration(0) //5s to allow rpc to connect first
 	DEFAULT_PORT            = "4000"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	done := make(chan int)
 
 	//Init the nodes on the server (master or slave)
-	node.Init(isMaster, masterIp)
+	go node.Init(isMaster, masterIp)
 
 	//Give the nodes time to init before setting up http server on master
 	if isMaster {
