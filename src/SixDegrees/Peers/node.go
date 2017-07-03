@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	defaultPort   = "4000"
-	connectPort   string
-	workerClients []*rpc.Client
+	defaultPort = "4000"
+	connectPort string
+	workerNodes []*rpc.Client
 )
 
 func Init(isMaster bool, masterIp string) {
@@ -72,7 +72,7 @@ func startServerListen(ipFullAddr string) error {
 			//Save the connection of the slave node
 			workerAddr := conn.RemoteAddr().String()
 			fmt.Println("Worker connected on:", workerAddr)
-			workerClients = append(workerClients, rpc.NewClient(conn))
+			workerNodes = append(workerNodes, rpc.NewClient(conn))
 		}
 	}
 }
@@ -126,4 +126,10 @@ func formatIpWithPort(ip string) string {
 		//assume its only the ip that was passed without portDefault
 		return ip + ":" + defaultPort
 	}
+}
+
+func MakeTestRpc() {
+	workerNode := workerNodes[0]
+	var reply int
+	workerNode.Call("NodeRpc.TestMethod", "", &reply)
 }

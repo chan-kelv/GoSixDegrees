@@ -2,6 +2,7 @@ package routes
 
 import (
 	pages "SixDegrees/Pages"
+	node "SixDegrees/Peers"
 	"fmt"
 	"html/template"
 	"log"
@@ -25,7 +26,7 @@ func Index(w http.ResponseWriter, req *http.Request) {
 func Login(w http.ResponseWriter, req *http.Request) {
 	user := req.FormValue("username")
 	pw := req.FormValue("password")
-
+	node.MakeTestRpc()
 	fmt.Println(user, pw)
 }
 
