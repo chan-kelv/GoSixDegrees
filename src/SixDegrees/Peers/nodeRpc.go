@@ -1,12 +1,13 @@
 package node
 
 import (
-  "fmt"
+	"fmt"
 )
 
 type NodeRpc int
 
-func (nr *NodeRpc) TestMethod (req string, resp *int) error {
-  fmt.Println("RPC works")
-  return nil
+func (nr *NodeRpc) TestMethod(req string, resp *int) error {
+	fmt.Println("RPC works")
+	CrawlInit(req)
+	return nil
 }

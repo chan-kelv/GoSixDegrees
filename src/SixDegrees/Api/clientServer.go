@@ -28,7 +28,7 @@ func handleEndpoints(router *mux.Router) {
 func crawl(w http.ResponseWriter, req *http.Request) {
 	startCrawlTerm := req.FormValue("crawlTerm")
 	fmt.Println("Start crawl on:", startCrawlTerm)
-	node.MakeTestRpc()
+	node.MakeTestRpc(startCrawlTerm)
 }
 
 func launch(w http.ResponseWriter, req *http.Request) {

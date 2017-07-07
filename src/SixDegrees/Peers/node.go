@@ -7,8 +7,11 @@ package node
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"net/rpc"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 var (
@@ -128,8 +131,64 @@ func formatIpWithPort(ip string) string {
 	}
 }
 
-func MakeTestRpc() {
-	workerNode := workerNodes[0]
-	var reply int
-	workerNode.Call("NodeRpc.TestMethod", "", &reply)
+/**
+ * Crawl the initial page
+ */
+func CrawlInit(crawlTerm string) {
+	fmt.Println("Begin crawl on page:", crawlTerm)
+	resp, err := http.Get(crawlTerm)
+	if err != nil {
+		fmt.Println("Crawl init error:", err)
+		return
+	}
+
+	respBody := resp.Body
+	if err != nil {
+		fmt.Println("Crawl init body error:", err)
+		return
+	}
+
+	z := html.NewTokenizer(respBody)
+	for {
+		tokenType := z.Next()
+		if tokenType == html.ErrorToken {
+			fmt.Println("Error token or done")
+			return
+		}
+		// token := z.Token()
+		switch tokenType {
+		case html.StartTagToken: // <tag>
+			// type Token struct {
+			//     Type     TokenType
+			//     DataAtom atom.Atom
+			//     Data     string
+			//     Attr     []Attribute
+			// }
+			//
+			// type Attribute struct {
+			//     Namespace, Key, Val string
+			// }
+			token := z.Token()
+			isAnchor := token.Data == "a"
+			if isAnchor {
+				for _, a := range token.Attr {
+					if a.Key == "href" {
+						fmt.Println("Link found:", a.Val)
+					}
+				}
+			}
+		case html.TextToken: // text between start and end tag
+		case html.EndTagToken: // </tag>
+		case html.SelfClosingTagToken: // <tag/>
+
+		}
+	}
+
+}
+
+func MakeTestRpc(crawlTerm string) {
+	// workerNode := workerNodes[0]
+	// var reply int
+	// workerNode.Call("NodeRpc.TestMethod", "", &reply)
+	CrawlInit(crawlTerm)
 }
