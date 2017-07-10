@@ -10,8 +10,6 @@ import (
 	"net/http"
 	"net/rpc"
 	"strings"
-
-	"golang.org/x/net/html"
 )
 
 var (
@@ -100,7 +98,6 @@ func dialServer(masterIp string) (conn *net.TCPConn, err error) {
 		err = fmt.Errorf("Worker connect error: %v", err.Error())
 		return
 	}
-
 	return conn, nil
 }
 
@@ -148,42 +145,40 @@ func CrawlInit(crawlTerm string) {
 		return
 	}
 
-	z := html.NewTokenizer(respBody)
-	for {
-		tokenType := z.Next()
-		if tokenType == html.ErrorToken {
-			fmt.Println("Error token or done")
-			return
-		}
-		// token := z.Token()
-		switch tokenType {
-		case html.StartTagToken: // <tag>
-			// type Token struct {
-			//     Type     TokenType
-			//     DataAtom atom.Atom
-			//     Data     string
-			//     Attr     []Attribute
-			// }
-			//
-			// type Attribute struct {
-			//     Namespace, Key, Val string
-			// }
-			token := z.Token()
-			isAnchor := token.Data == "a"
-			if isAnchor {
-				for _, a := range token.Attr {
-					if a.Key == "href" {
-						fmt.Println("Link found:", a.Val)
-					}
-				}
-			}
-		case html.TextToken: // text between start and end tag
-		case html.EndTagToken: // </tag>
-		case html.SelfClosingTagToken: // <tag/>
-
-		}
-	}
-
+	// z := html.NewTokenizer(respBody)
+	// for {
+	// 	tokenType := z.Next()
+	// 	if tokenType == html.ErrorToken {
+	// 		fmt.Println("Error token or done")
+	// 		return
+	// 	}
+	// 	switch tokenType {
+	// 	case html.StartTagToken: // <tag>
+	// 		// type Token struct {
+	// 		//     Type     TokenType
+	// 		//     DataAtom atom.Atom
+	// 		//     Data     string
+	// 		//     Attr     []Attribute
+	// 		// }
+	// 		//
+	// 		// type Attribute struct {
+	// 		//     Namespace, Key, Val string
+	// 		// }
+	// 		token := z.Token()
+	// 		isAnchor := token.Data == "a"
+	// 		if isAnchor {
+	// 			for _, a := range token.Attr {
+	// 				if a.Key == "href" {
+	// 					fmt.Println("Link found:", a.Val)
+	// 				}
+	// 			}
+	// 		}
+	// 	case html.TextToken: // text between start and end tag
+	// 	case html.EndTagToken: // </tag>
+	// 	case html.SelfClosingTagToken: // <tag/>
+	// 	}
+	// }
+	fmt.Println("Done crawl")
 }
 
 func MakeTestRpc(crawlTerm string) {
